@@ -23,11 +23,19 @@ model = LinearRegression()
 model.fit(X_train_scaled, y_train)
 
 rmse = root_mean_squared_error(y_test, model.predict(X_test_scaled))
-
+doc = f"""RMSE: {rmse:.2f}\n
+#{"#"*60}\n
+Random_State: 134893\n
+#{"#"*60}\n
+model_params: {model.get_params()}\n
+#{"#"*60}\n
+Dataset: {Xy.DESCR}"""
 with open("models/scaler.pkl", "wb") as f:
     pickle.dump(scaler, f)
 with open("models/model.pkl", "wb") as f:
     pickle.dump(model, f)
+with open("models/training_metrics.txt", "w") as f:
+    f.write(doc)
 
 
 if __name__ == "__main__":
