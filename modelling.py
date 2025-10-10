@@ -49,6 +49,7 @@ X = Xy.frame.drop(columns=["target"]) # pylint: disable=no-member
 
 y = Xy.frame["target"] # pylint: disable=no-member
 
+dataset_description = Xy.DESCR # pylint: disable=no-member
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=134893)
 
@@ -66,7 +67,7 @@ Random_State: 134893\n
 #{"#"*60}\n
 model_params: {model.get_params()}\n
 #{"#"*60}\n
-Dataset: {Xy.DESCR}""" # pylint: disable=no-member
+Dataset: {dataset_description}"""
 with open("models/scaler.pkl", "wb") as f:
     pickle.dump(scaler, f)
 with open("models/model.pkl", "wb") as f:
