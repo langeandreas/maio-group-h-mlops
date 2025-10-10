@@ -101,7 +101,7 @@ async def predict(data: DiabetesInput) -> dict[str, float] | dict[str, str]:
         features_scaled = scaler.transform(features)
         prediction = model.predict(features_scaled)[0]
         return {"prediction": float(prediction)}
-    except Exception as e:
+    except (ValueError, TypeError, RuntimeError) as e:
         return {"error": str(e)}
 
 if __name__ == "__main__":
