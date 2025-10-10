@@ -55,8 +55,9 @@ class DiabetesInput(BaseModel):
 
 app = FastAPI()
 MODEL_VERSION = "v0.1"
-model = pickle.load(open("models/model.pkl", "rb"))
-scaler = pickle.load(open("models/scaler.pkl", "rb"))
+with open("models/model.pkl", "rb") as model_file, open("models/scaler.pkl", "rb") as scaler_file:
+    model = pickle.load(model_file)
+    scaler = pickle.load(scaler_file)
 
 @app.get("/health")
 def health() -> dict[str, str]:
