@@ -1,3 +1,4 @@
+# pylint: disable=invalid-name, too-many-locals
 """
 This script trains a linear regression model on the Diabetes dataset, evaluates its performance,
 and saves the trained model, scaler, and training metrics.
@@ -35,7 +36,12 @@ Note:
     - The random state for train-test splitting is set to 134893 for reproducibility.
     - The Diabetes dataset's "target" column is used as the dependent variable.
 """
+
+import json
 import pickle
+import time
+import hashlib
+from pathlib import Path
 
 from sklearn.datasets import load_diabetes
 from sklearn.linear_model import LinearRegression
@@ -43,38 +49,51 @@ from sklearn.metrics import root_mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-Xy = load_diabetes(as_frame=True)
+SEED = 134893
 
-X = Xy.frame.drop(columns=["target"]) # pylint: disable=no-member
 
-y = Xy.frame["target"] # pylint: disable=no-member
+def main(version: str = "v0.1"):
+    """Main function to train the model and save the artifacts."""
+    Xy = load_diabetes(as_frame=True)
+    X = Xy.frame.drop(columns=["target"]) # pylint: disable=no-member
+    y = Xy.frame["target"] # pylint: disable=no-member
 
-dataset_description = Xy.DESCR # pylint: disable=no-member
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=SEED)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=134893)
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
 
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+    model = LinearRegression()
+    model.fit(X_train_scaled, y_train)
 
-model = LinearRegression()
-model.fit(X_train_scaled, y_train)
+    rmse = root_mean_squared_error(y_test, model.predict(X_test_scaled))
 
-rmse = root_mean_squared_error(y_test, model.predict(X_test_scaled))
-doc = f"""RMSE: {rmse:.2f}\n
-#{"#"*60}\n
-Random_State: 134893\n
-#{"#"*60}\n
-model_params: {model.get_params()}\n
-#{"#"*60}\n
-Dataset: {dataset_description}"""
-with open("models/scaler.pkl", "wb") as f:
-    pickle.dump(scaler, f)
-with open("models/model.pkl", "wb") as f:
-    pickle.dump(model, f)
-with open("models/training_metrics.txt", "w", encoding="utf-8") as f:
-    f.write(doc)
+    Path("models").mkdir(exist_ok=True)
 
+    # save artifacts
+    with open("models/scaler.pkl", "wb") as f:
+        pickle.dump(scaler, f)
+    with open("models/model.pkl", "wb") as f:
+        pickle.dump(model, f)
+
+    # write JSON metrics (for CI/tests/artifacts)
+    split_hash = hashlib.sha256(("".join(map(str, X_train.index))).encode()).hexdigest()[:12]
+    metrics = {
+        "version": version,
+        "seed": SEED,
+        "rmse": float(rmse),
+        "n_train": int(len(X_train)),
+        "n_test": int(len(X_test)),
+        "split_hash": split_hash,
+        "model_params": model.get_params(),
+        "ts": int(time.time()),
+    }
+    Path("models/training_metrics.txt").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+
+    # console print for README/Logs
+    print(json.dumps({"RMSE (v0.1)": round(float(rmse), 2)}, indent=2))
 
 if __name__ == "__main__":
-    print(f"RMSE (v0.1): {rmse:.2f}") # for updating the readme
+    main()
+    

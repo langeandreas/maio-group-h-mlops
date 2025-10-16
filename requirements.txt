@@ -16,3 +16,6 @@ threadpoolctl==3.6.0
 typing-inspection==0.4.2
 typing_extensions==4.15.0
 uvicorn==0.37.0
+pandas==2.3.3
+pylint==4.0.1
+pytest==8.4.2
