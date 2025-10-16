@@ -1,0 +1,75 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Train
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python modelling.py
+
+      - name: Capture metrics for release notes
+        id: metrics
+        run: echo "json=$(cat models/training_metrics.txt)" >> $GITHUB_OUTPUT
+
+      - name: Login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        run: |
+          docker build \
+            --build-arg MODEL_VERSION=${GITHUB_REF_NAME} \
+            --build-arg MODEL_PATH=models/model.pkl \
+            -t $IMAGE:${{ github.ref_name }} \
+            -t $IMAGE:latest .
+
+      - name: Smoke test container
+        run: |
+          docker run -d --rm -p 8000:8000 --name svc \
+            -e MODEL_VERSION=${GITHUB_REF_NAME} \
+            -e MODEL_PATH=models/model.pkl \
+            $IMAGE:${{ github.ref_name }}
+          sleep 3
+          curl -fsS http://localhost:8000/health | jq .
+          curl -fsS -X POST http://localhost:8000/predict \
+            -H "content-type: application/json" \
+            -d '{"age":0.02,"sex":-0.044,"bmi":0.06,"bp":-0.03,"s1":-0.02,"s2":0.03,"s3":-0.02,"s4":0.02,"s5":0.02,"s6":-0.001}' | jq .
+          docker stop svc
+
+      - name: Push images
+        run: |
+          docker push $IMAGE:${{ github.ref_name }}
+          docker push $IMAGE:latest
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            Training metrics:
+            ```
+            ${{ steps.metrics.outputs.json }}
+            ```
