@@ -26,16 +26,6 @@ jobs:
           pip install -r requirements.txt
           python modelling.py
 
-      - name: Capture metrics
-        id: metrics
-        run: |
-          python - <<'PY' >> "$GITHUB_OUTPUT"
-          import json
-          with open("models/training_metrics.txt") as f:
-            data = json.load(f)
-          print("json=" + json.dumps(data, separators=(',',':')))
-          PY
-
       - name: Login
         uses: docker/login-action@v3
         with:
