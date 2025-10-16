@@ -29,9 +29,12 @@ jobs:
       - name: Capture metrics
         id: metrics
         run: |
-          echo 'json<<EOF' >> "$GITHUB_OUTPUT"
-          cat models/training_metrics.txt >> "$GITHUB_OUTPUT"
-          echo 'EOF' >> "$GITHUB_OUTPUT"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          with open("models/training_metrics.txt") as f:
+            data = json.load(f)
+          print("json=" + json.dumps(data, separators=(',',':')))
+          PY
 
       - name: Login
         uses: docker/login-action@v3
