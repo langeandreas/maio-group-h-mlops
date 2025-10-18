@@ -29,9 +29,11 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error, precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import LinearRegression
 
-SEED = 134893
+SEED = 8
 
 
 def rmse_of(y_true, y_pred):
@@ -60,30 +62,55 @@ def main(version: str = "v0.2"):
 
     # split
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=SEED
+        X, y, test_size=0.2, random_state=SEED, shuffle=True
     )
 
     # scale
     scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+    X_train_scaled = X_train#scaler.fit_transform(X_train)
+    X_test_scaled = X_test#scaler.transform(X_test)
 
-    # candidates
+    # polynomial features, more features for a complex model to perform well
+    poly = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)
+    X_train_poly = poly.fit_transform(X_train)
+    X_test_poly = poly.transform(X_test)
+
+    # Define parameter grids for each model
+    ridge_params = {"alpha": [0.05, 0.1, 0.2, 0.3]}
+    rf_params = {"n_estimators": [100, 200], "max_depth": [None, 10, 20]}
+
+
+    # Initialize models
+    ridge = Ridge(random_state=SEED)
+    rf = RandomForestRegressor(random_state=SEED, n_jobs=-1)
+    # Initialize Support Vector Regressor
+
+    linear_reg = LinearRegression()
+    linear_reg.fit(X_train_poly, y_train)
+
+    ridge_grid = GridSearchCV(ridge, ridge_params, scoring="neg_mean_squared_error", cv=5, n_jobs=-1)
+    ridge_grid.fit(X_train_poly, y_train)
+
+    rf_grid = GridSearchCV(rf, rf_params, scoring="neg_mean_squared_error", cv=5, n_jobs=-1)
+    rf_grid.fit(X_train_poly, y_train)
+
+
+    # Use the best estimators from GridSearchCV as candidates
     candidates = {
-        "Ridge": Ridge(alpha=1.0, random_state=SEED),
-        "RandomForestRegressor": RandomForestRegressor(
-            n_estimators=500, random_state=SEED, n_jobs=-1
-        ),
+        "LinearRegression": linear_reg,
+        "Ridge": ridge_grid.best_estimator_,
+        "RandomForestRegressor": rf_grid.best_estimator_,
     }
 
     # train + select
     scores = {}
     trained = {}
     for name, model in candidates.items():
-        model.fit(X_train_scaled, y_train)
-        rmse = rmse_of(y_test, model.predict(X_test_scaled))
+        model.fit(X_train_poly, y_train)
+        rmse = rmse_of(y_test, model.predict(X_test_poly))
         scores[name] = rmse
         trained[name] = model
+        print(f"{name} RMSE: {rmse:.2f}")
 
     best_name = min(scores, key=scores.get)
     best_model = trained[best_name]
@@ -95,11 +122,11 @@ def main(version: str = "v0.2"):
     y_train_true_bin = (y_train.values >= q).astype(int)
 
     # choose threshold on predicted scores to maximize F1 on train
-    train_scores = best_model.predict(X_train_scaled)
+    train_scores = best_model.predict(X_train_poly)
     thr, f1_at_thr = find_best_threshold(y_train_true_bin, train_scores)
 
     # eval calibrated threshold on test
-    test_scores = best_model.predict(X_test_scaled)
+    test_scores = best_model.predict(X_test_poly)
     y_test_true_bin = (y_test.values >= q).astype(int)
     y_test_pred_bin = (test_scores >= thr).astype(int)
     prec = float(precision_score(y_test_true_bin, y_test_pred_bin, zero_division=0))
