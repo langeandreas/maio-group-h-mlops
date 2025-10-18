@@ -1,16 +1,15 @@
 {
   "version": "v0.1",
-  "seed": 134893,
-  "rmse": 57.92539693429556,
+  "seed": 8,
+  "rmse": 54.20213389192841,
   "n_train": 353,
   "n_test": 89,
-  "split_hash": "fd51410a8e08",
+  "split_hash": "198499561911",
   "model_params": {
     "copy_X": true,
     "fit_intercept": true,
     "n_jobs": null,
-    "positive": false,
-    "tol": 1e-06
+    "positive": false
   },
-  "ts": 1760607682
+  "ts": 1760825345
 }

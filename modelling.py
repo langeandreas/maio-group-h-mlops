@@ -49,7 +49,7 @@ from sklearn.metrics import root_mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-SEED = 134893
+SEED = 8
 
 
 def main(version: str = "v0.1"):
