@@ -2,7 +2,7 @@
 FROM python:3-slim
 
 # Config that can be overridden from the tag workflow
-ARG MODEL_VERSION=v0.1
+ARG MODEL_VERSION=v0.2
 ARG MODEL_PATH=models/model.pkl
 ENV MODEL_VERSION=${MODEL_VERSION}
 ENV MODEL_PATH=${MODEL_PATH}

@@ -54,7 +54,7 @@ class DiabetesInput(BaseModel):
     s6: float
 
 app = FastAPI()
-MODEL_VERSION = "v0.1"
+MODEL_VERSION = "v0.2"
 with (
     open("models/model.pkl", "rb") as model_file,
     open("models/poly_features.pkl", "rb") as poly_file):

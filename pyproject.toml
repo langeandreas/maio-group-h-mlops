@@ -1,6 +1,6 @@
 [project]
 name = "maio-group-h-mlops"
-version = "0.1.0"
+version = "0.2.0"
 description = "MAIO Assignment Group H"
 authors = [
     {name = "langeandreas",email = "langeandreas5@gmail.com"}

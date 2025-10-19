@@ -17,11 +17,11 @@ git clone https://github.com/langeandreas/maio-group-h-mlops.git
 
 With Poetry: ```poetry install```
 
-3. Train (v0.1)
+3. Train (v0.2)
 ```bash
    python modelling.py
 ```
-Outputs: models/model.pkl, models/training_metrics.txt
+Outputs: models/model.pkl, models/poly_features.pkl, models/training_metrics.txt
 
 4. Run API
 ```bash
