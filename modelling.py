@@ -29,7 +29,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error, precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LinearRegression
 
@@ -65,11 +65,6 @@ def main(version: str = "v0.2"):
         X, y, test_size=0.2, random_state=SEED, shuffle=True
     )
 
-    # scale
-    scaler = StandardScaler()
-    X_train_scaled = X_train#scaler.fit_transform(X_train)
-    X_test_scaled = X_test#scaler.transform(X_test)
-
     # polynomial features, more features for a complex model to perform well
     poly = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)
     X_train_poly = poly.fit_transform(X_train)
@@ -88,7 +83,12 @@ def main(version: str = "v0.2"):
     linear_reg = LinearRegression()
     linear_reg.fit(X_train_poly, y_train)
 
-    ridge_grid = GridSearchCV(ridge, ridge_params, scoring="neg_mean_squared_error", cv=5, n_jobs=-1)
+    ridge_grid = GridSearchCV(
+        ridge,
+        ridge_params,
+        scoring="neg_mean_squared_error",
+        cv=5,
+        n_jobs=-1)
     ridge_grid.fit(X_train_poly, y_train)
 
     rf_grid = GridSearchCV(rf, rf_params, scoring="neg_mean_squared_error", cv=5, n_jobs=-1)
@@ -136,10 +136,10 @@ def main(version: str = "v0.2"):
     Path("models").mkdir(exist_ok=True)
 
     # save artifacts
-    with open("models/scaler.pkl", "wb") as f:
-        pickle.dump(scaler, f)
     with open("models/model.pkl", "wb") as f:
         pickle.dump(best_model, f)
+    with open("models/poly_features.pkl", "wb") as f:
+        pickle.dump(poly, f)
 
     split_hash = hashlib.sha256(("".join(map(str, X_train.index))).encode()).hexdigest()[:12]
     metrics = {
