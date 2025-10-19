@@ -3,7 +3,7 @@
 ## v0.1
 Model: StandardScaler + LinearRegression
 
-- RMSE: **57.93**
+- RMSE: **54.20**
 - Artifacts: ```models/model.pkl```, ```models/training_metrics.txt```
 
 ## v0.2
@@ -12,6 +12,6 @@ Model:
 - RMSE: **53.35**
 
 ### Improvement Delta
-RMSE (v0.1 → v0.2): **57.93** → **53.35**  ( **4.58**)
+RMSE (v0.1 → v0.2): **54.20** → **53.35**  ( **4.58**)
 
 
