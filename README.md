@@ -82,4 +82,5 @@ All releases are accessible here: [RELEASES](https://github.com/langeandreas/mai
 Linear Regression using a Standard Scaler, the exact model metrics can be found in models/training_metrics.txt
 
 
-## v0.2: TODO
+## v0.2: Improved model and preprocessing
+Ridge Regression using polynomial features, model training metrics can be found in models/training_metrics.txt
