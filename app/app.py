@@ -55,12 +55,14 @@ class DiabetesInput(BaseModel):
 
 app = FastAPI()
 MODEL_VERSION = "v0.1"
-with open("models/model.pkl", "rb") as model_file, open("models/scaler.pkl", "rb") as scaler_file:
+with (
+    open("models/model.pkl", "rb") as model_file,
+    open("models/poly_features.pkl", "rb") as poly_file):
     model = pickle.load(model_file)
-    scaler = pickle.load(scaler_file)
+    poly = pickle.load(poly_file)
 
 @app.get("/health")
-def health() -> dict[str, str]:
+def     health() -> dict[str, str]:
     """
     Provides the health status of the application.
     Returns:
@@ -99,8 +101,8 @@ async def predict(data: DiabetesInput) -> dict[str, float] | dict[str, str]:
             data.age, data.sex, data.bmi, data.bp,
             data.s1, data.s2, data.s3, data.s4, data.s5, data.s6
             ]])
-        features_scaled = scaler.transform(features)
-        prediction = model.predict(features_scaled)[0]
+        poly_features = poly.transform(features)
+        prediction = model.predict(poly_features)[0]
         return {"prediction": float(prediction)}
     except (ValueError, TypeError, RuntimeError) as e:
         return {"error": str(e)}
