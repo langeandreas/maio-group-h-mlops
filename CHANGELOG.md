@@ -8,9 +8,10 @@ Model: StandardScaler + LinearRegression
 
 ## v0.2
 Model: 
-- RMSE: 
+- Preprocessing: Replaced Standard Scaler with Polynomial features for more complex models
+- RMSE: **53.35**
 
-## Delta
-RMSE (v0.1 → v0.2): **57.93** → **TODO**  ( **TODO**)
+### Improvement Delta
+RMSE (v0.1 → v0.2): **57.93** → **53.35**  ( **4.58**)
 
 
