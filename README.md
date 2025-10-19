@@ -48,7 +48,7 @@ Returns a prediction for the input in the POST request
 # Docker
 Build & run:
 ```bash
-docker build -t ghcr.io/langeandreas/maio-group-h-mlops:<version> .
+docker pull ghcr.io/langeandreas/maio-group-h-mlops:<version>
 docker run -p 8000:8000 ghcr.io/langeandreas/maio-group-h-mlops:<version>
 ```
 Version should be in this format: ```v0.x``` (e.g. ```v0.1```)
